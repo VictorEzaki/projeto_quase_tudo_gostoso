@@ -13,7 +13,7 @@ public class Categoria {
         categorias.add(this);
     }
 
-    public ArrayList<Categoria> listarCategorias() {
+    public static ArrayList<Categoria> listarCategorias() {
         return categorias;
     }
 }
