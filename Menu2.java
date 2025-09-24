@@ -77,7 +77,6 @@ public class Menu2 {
                         Integer uuid = scanner.nextInt();
 
                         Usuario usuario = new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
-                        usuarios.add(usuario);
 
                         break;
 
