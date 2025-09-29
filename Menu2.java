@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Menu2 {
@@ -56,30 +57,24 @@ public class Menu2 {
 
                         break;
                     case 5:
-
-                        System.out.printf("Digite o nome do usuario: ");
-                        String nomeUsuario = scanner.next();
-                        System.out.printf("Digite o email do usuario: ");
-                        Integer email = scanner.nextInt();
-                        System.out.printf("Digite a data de nascimento do usuario: ");
-                        Integer dataNascimento = scanner.nextInt();
-                        System.out.printf("Digite o cep do usuario: ");
-                        Integer cep = scanner.nextInt();
-                        System.out.printf("Digite o genero do usuario: ");
-                        Integer genero = scanner.nextInt();
-                        System.out.printf("Digite a senha do usuario: ");
-                        Integer senha = scanner.nextInt();
-                        System.out.printf("Digite o salt do usuario: ");
-                        Integer salt = scanner.nextInt();
-                        System.out.printf("Digite a data de iscrição do usuario: ");
-                        Integer inscrito = scanner.nextInt();
-                        System.out.printf("Digite o uuid do usuario: ");
-                        Integer uuid = scanner.nextInt();
-
-                        Usuario usuario = new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
-
+                     criarUsuario(scanner);
                         break;
+                    
+                    case 6:
+                    ArrayList<Usuario> usuario = Usuario.listarUsuarios();
 
+                        for (Usuario c : usuario) {
+                            System.out.printf("Nome: %s\n", c.nome);
+                            System.out.printf("Email: %s\n", c.email);
+                            System.out.printf("Data de nascimento: %s\n", c.data_nascimento);
+                            System.out.printf("Genero: %s\n", (c.genero == 1) ? "masculino" : "feminino");
+                            System.out.printf("Senha: %s\n", c.senha);
+                            System.out.printf("Salt: %s\n", c.salt);
+                            System.out.printf("Data de inscrição: %s\n", c.inscrito);
+                            System.out.printf("UUID: %s\n", c.uuid);
+                        }
+                        break;
+                        
                     case 9:
                         System.out.println("Encerrando...");
                         break;
@@ -95,5 +90,30 @@ public class Menu2 {
         } finally {
             scanner.close();
         }
+    }
+     public static void criarUsuario(Scanner scanner) {
+
+      System.out.printf("Digite o nome do usuario: ");
+                        String nomeUsuario = scanner.next();
+                        System.out.printf("Digite o email do usuario: ");
+                        String email = scanner.next();
+                        System.out.printf("Digite a data de nascimento do usuario: ");
+                        String dataNascimento = scanner.next();
+                        System.out.printf("Digite o cep do usuario: ");
+                        Integer cep = scanner.nextInt();
+                        System.out.printf("Digite o genero do usuario: ");
+                        Integer genero = scanner.nextInt();
+                        System.out.printf("Digite a senha do usuario: ");
+                        String senha = scanner.next();
+                        System.out.printf("Digite o salt do usuario: ");
+                        String salt = scanner.next();
+                        System.out.printf("Digite a data de iscrição do usuario: ");
+                        String inscrito = scanner.next();
+                        System.out.printf("Digite o uuid do usuario: ");
+                        String uuid = scanner.next();
+
+                        Usuario usuario = new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
+
+
     }
 }

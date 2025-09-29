@@ -1,22 +1,22 @@
-import java.sql.Date;
+
 import java.util.ArrayList;
 
 public class Usuario {
-    Integer id_usuario;
+   
     String nome;
     String email;
-    Date data_nascimento;
+    String data_nascimento;
     Integer cep;
     Integer genero;
     String senha;
     String salt;
-    Date inscrito;
+    String inscrito;
     String uuid;
 
 public static ArrayList<Usuario> usuarios = new ArrayList<>();
 
-public Usuario(Integer id_usuario, String nome, String email, Date data_nascimento, Integer cep, Integer genero, String senha, String salt, Date inscrito, String uuid){
-    this.id_usuario = id_usuario;
+public Usuario(String nome, String email, String data_nascimento, Integer cep, Integer genero, String senha, String salt, String inscrito, String uuid){
+   
     this.nome = nome;
     this.email = email;
     this.data_nascimento = data_nascimento;
@@ -29,5 +29,7 @@ public Usuario(Integer id_usuario, String nome, String email, Date data_nascimen
 
     usuarios.add(this);
 }
-    
+    public static ArrayList<Usuario> listarUsuarios() {
+        return usuarios;
+}
 }
