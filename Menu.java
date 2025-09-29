@@ -43,6 +43,7 @@ public class Menu {
 
                 switch (escolha) {
                     case 1:
+
                         criarCategoria(scanner);
                         break;
 
@@ -55,6 +56,11 @@ public class Menu {
                             System.out.printf("Status da categoria: %s\n", (c.ativo == 1) ? "Ativo" : "Inativo");
                         }
 
+                        break;
+
+                    case 5:
+
+                        criarUsuario(scanner);
                         break;
 
                     case 9:
@@ -82,6 +88,31 @@ public class Menu {
         Integer ativo = scanner.nextInt();
 
         Categoria categoria = new Categoria(nomeCategoria, ativo);
+
+    }
+
+    public static void criarUsuario(Scanner scanner) {
+
+        System.out.printf("Digite o nome do usuario: ");
+        String nomeUsuario = scanner.next();
+        System.out.printf("Digite o email do usuario: ");
+        String email = scanner.next();
+        System.out.printf("Digite a data de nascimento do usuario: ");
+        String dataNascimento = scanner.next();
+        System.out.printf("Digite o cep do usuario: ");
+        Integer cep = scanner.nextInt();
+        System.out.printf("Digite o genero do usuario: ");
+        Integer genero = scanner.nextInt();
+        System.out.printf("Digite a senha do usuario: ");
+        String senha = scanner.next();
+        System.out.printf("Digite o salt do usuario: ");
+        String salt = scanner.next();
+        System.out.printf("Digite a data de iscrição do usuario: ");
+        String inscrito = scanner.next();
+        System.out.printf("Digite o uuid do usuario: ");
+        String uuid = scanner.next();
+
+        Usuario usuario = new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
 
     }
 }
