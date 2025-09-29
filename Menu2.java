@@ -77,6 +77,7 @@ public class Menu2 {
                         
                     case 9:
                         System.out.println("Encerrando...");
+                        System.exit(0);
                         break;
 
                     default:
