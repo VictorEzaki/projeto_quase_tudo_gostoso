@@ -1,4 +1,4 @@
-import java.sql.Date;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -33,6 +33,10 @@ public class Usuario {
         this.uuid = uuid;
 
         usuarios.add(this);
+    }
+
+    public static ArrayList<Usuario> listarUsuarios() {
+        return usuarios;
     }
 
 }
