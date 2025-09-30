@@ -44,7 +44,8 @@ public class Menu {
                 switch (escolha) {
                     case 1:
 
-                        criarCategoria(scanner);
+                        Categoria categoria = criarCategoria(scanner);
+
                         break;
 
                     case 2:
@@ -60,11 +61,33 @@ public class Menu {
 
                     case 5:
 
-                        criarUsuario(scanner);
+                        Usuario usuario = criarUsuario(scanner);
+
+                        break;
+
+                    case 7:
+                        
+                        // Receita receita = criarReceita(scanner);
+
+                        break;
+
+                    case 8:
+                        
+                        ArrayList<Receita> receitas = Receita.listarReceitas();
+
+                        for (Receita r : receitas) {
+                            System.out.printf("Título da receita: %s\n", r.titulo);
+                            System.out.printf("Descrição: %s\n", r.descricao);
+                            System.out.printf("Imagem: %s\n", r.imagem);
+                            System.out.printf("Autor da receita: %s\n", r.usuario.nome);
+                        }
+
                         break;
 
                     case 9:
+
                         System.out.println("Encerrando...");
+
                         break;
 
                     default:
@@ -80,18 +103,18 @@ public class Menu {
         }
     }
 
-    public static void criarCategoria(Scanner scanner) {
+    public static Categoria criarCategoria(Scanner scanner) {
 
         System.out.printf("Digite a descrição da cateogira: ");
         String nomeCategoria = scanner.next();
         System.out.printf("Digite o status da cateogira: ");
         Integer ativo = scanner.nextInt();
 
-        Categoria categoria = new Categoria(nomeCategoria, ativo);
+        return new Categoria(nomeCategoria, ativo);
 
     }
 
-    public static void criarUsuario(Scanner scanner) {
+    public static Usuario criarUsuario(Scanner scanner) {
 
         System.out.printf("Digite o nome do usuario: ");
         String nomeUsuario = scanner.next();
@@ -112,7 +135,24 @@ public class Menu {
         System.out.printf("Digite o uuid do usuario: ");
         String uuid = scanner.next();
 
-        Usuario usuario = new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
+        return new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
+
+    }
+
+    public static Receita criarReceita(Scanner scanner) {
+
+        Usuario usuarios = Usuario.listarUsuarios();
+
+        System.out.println("Digite o título da receita:");
+        String titulo = scanner.next();
+        System.out.println("Digite o desrição da receita:");
+        String descricao = scanner.next();
+        System.out.println("Insira uma imgem para a receita:");
+        String imagem = scanner.next();
+
+
+
+        return new Receita(titulo, descricao, imagem);
 
     }
 }

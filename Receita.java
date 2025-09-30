@@ -16,4 +16,8 @@ public class Receita {
 
         receitas.add(this);
     }
+
+    public static ArrayList<Receita> listarReceitas() {
+        return receitas;
+    }
 }
