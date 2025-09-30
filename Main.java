@@ -1,8 +1,11 @@
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+
+    public static ArrayList<Usuario> usuarios = new ArrayList<>();
+    public static ArrayList<Receita> receitas = new ArrayList<>();
+    public static ArrayList<Categoria> categorias = new ArrayList<>();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -44,13 +47,11 @@ public class Main {
                 switch (escolha) {
                     case 1:
 
-                        Categoria categoria = criarCategoria(scanner);
+                        criarCategoria(scanner);
 
                         break;
 
                     case 2:
-
-                        ArrayList<Categoria> categorias = Categoria.listarCategorias();
 
                         for (Categoria c : categorias) {
                             System.out.printf("Descrição da categoria: %s\n", c.categoria);
@@ -61,19 +62,35 @@ public class Main {
 
                     case 5:
 
-                        Usuario usuario = criarUsuario(scanner);
+                        criarUsuario(scanner);
+
+                        break;
+
+                    case 6:
+
+                        for (Usuario u : usuarios) {
+                            System.out.printf("Nome: s%", u.nome);
+                            System.out.printf("Data de nascimento: s%", u.data_nascimento);
+                            System.out.printf("Gênero: s%", u.genero);
+                            System.out.printf("Data de inscrição: s%", u.inscrito);
+                        }
 
                         break;
 
                     case 7:
-                        
-                        Receita receita = criarReceita(scanner);
+
+                        criarReceita(scanner);
 
                         break;
 
                     case 8:
-                        
-                        ArrayList<Receita> receitas = Receita.listarReceitas();
+
+                        for (Receita r : receitas) {
+                            System.out.printf("Título: %s\n", r.titulo);
+                            System.out.printf("Descrição: %s\n", r.descricao);
+                            System.out.printf("Imagem: %s\n", r.imagem);
+                            System.out.printf("Autor: %s\n", r.usuario.nome);
+                        }
 
                         break;
 
@@ -96,19 +113,21 @@ public class Main {
         }
     }
 
-    public static Categoria criarCategoria(Scanner scanner) {
+    public static void criarCategoria(Scanner scanner) {
 
         System.out.printf("Digite a descrição da cateogira: ");
         String nomeCategoria = scanner.next();
         System.out.printf("Digite o status da cateogira: ");
         Integer ativo = scanner.nextInt();
 
-        return new Categoria(nomeCategoria, ativo);
-
+        Categoria categoria = new Categoria(nomeCategoria, ativo);
+        categorias.add(categoria);
     }
 
-    public static Usuario criarUsuario(Scanner scanner) {
+    public static void criarUsuario(Scanner scanner) {
 
+        System.out.printf("Digite o ID do usuario: ");
+        Integer idUsuario = scanner.nextInt();
         System.out.printf("Digite o nome do usuario: ");
         String nomeUsuario = scanner.next();
         System.out.printf("Digite o email do usuario: ");
@@ -128,21 +147,40 @@ public class Main {
         System.out.printf("Digite o uuid do usuario: ");
         String uuid = scanner.next();
 
-        return new Usuario(nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
-
+        Usuario usuario = new Usuario(idUsuario, nomeUsuario, email, dataNascimento, cep, genero, senha, salt, inscrito, uuid);
+        usuarios.add(usuario);
     }
 
-    public static Receita criarReceita(Scanner scanner) {
+    public static void criarReceita(Scanner scanner) {
 
-        System.out.println("Digite o título da receita:");
+        Integer idUsuario;
+
+        System.out.printf("\nDigite o título da receita:");
         String titulo = scanner.next();
-        System.out.println("Digite o desrição da receita:");
+        System.out.printf("\nDigite o desrição da receita:");
         String descricao = scanner.next();
-        System.out.println("Insira uma imgem para a receita:");
+        System.out.printf("\nInsira uma imagem para a receita:");
         String imagem = scanner.next();
-        Usuario usuario = criarUsuario(scanner);
 
-        return new Receita(titulo, descricao, imagem, usuario);
+        System.out.printf("Escolha o usuário autor da receita pelo seu ID:\n");
+        for (Usuario u : usuarios) {
+            System.out.printf("[%d] - %s\n", u.idUsuario, u.nome);
+        }
+        idUsuario = scanner.nextInt();
+        Usuario usuarioEncontrado = buscarUsuarioPorId(idUsuario);
 
+
+        Receita receita = new Receita(titulo, descricao, imagem, usuarioEncontrado);
+        receitas.add(receita);
+        usuarioEncontrado.adicionarReceita(receita);
+    }
+
+    public static Usuario buscarUsuarioPorId(int id) {
+        for (Usuario u : usuarios) {
+            if (u.idUsuario == id) {
+                return u;
+            }
+        }
+        return null;
     }
 }
