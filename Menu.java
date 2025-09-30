@@ -66,13 +66,13 @@ public class Menu {
                         break;
 
                     case 7:
-                        
+
                         // Receita receita = criarReceita(scanner);
 
                         break;
 
                     case 8:
-                        
+
                         ArrayList<Receita> receitas = Receita.listarReceitas();
 
                         for (Receita r : receitas) {
@@ -141,18 +141,28 @@ public class Menu {
 
     public static Receita criarReceita(Scanner scanner) {
 
-        Usuario usuarios = Usuario.listarUsuarios();
+        ArrayList<Usuario> usuarios = Usuario.listarUsuarios();
+        int i = 0;
 
-        System.out.println("Digite o título da receita:");
+        System.out.printf("Digite o título da receita:");
         String titulo = scanner.next();
-        System.out.println("Digite o desrição da receita:");
+        System.out.printf("Digite o desrição da receita:");
         String descricao = scanner.next();
-        System.out.println("Insira uma imgem para a receita:");
+        System.out.printf("Insira uma imagem para a receita:");
         String imagem = scanner.next();
+        System.out.printf("Escolha um id do usuário para ser autor da receita:\n");
+        for (Usuario u : usuarios) {
+            System.out.printf("[%d] - %s\n", u.idUsuario, u.nome);
+        }
+        int id = scanner.nextInt();
 
+        for (Usuario u : usuarios) {
+            if (id == u.idUsuario) {
 
-
-        return new Receita(titulo, descricao, imagem);
-
+            }
+        }
+        
+        
+        return new Receita(titulo, descricao, imagem,);
     }
 }
