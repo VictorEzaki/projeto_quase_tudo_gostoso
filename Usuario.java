@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Usuario {
-    Integer idUsuario;
     String nome;
     String email;
     String data_nascimento;
@@ -19,9 +18,6 @@ public class Usuario {
     public Usuario(String nome, String email, String data_nascimento, Integer cep, Integer genero,
             String senha, String salt, String inscrito, String uuid) {
 
-        Random random = new Random();
-
-        this.idUsuario = random.nextInt(100);
         this.nome = nome;
         this.email = email;
         this.data_nascimento = data_nascimento;
@@ -33,10 +29,6 @@ public class Usuario {
         this.uuid = uuid;
 
         usuarios.add(this);
-    }
-
-    public static ArrayList<Usuario> listarUsuarios() {
-        return usuarios;
     }
 
 }

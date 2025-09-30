@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class Menu {
+public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -66,21 +66,14 @@ public class Menu {
                         break;
 
                     case 7:
-
-                        // Receita receita = criarReceita(scanner);
+                        
+                        Receita receita = criarReceita(scanner);
 
                         break;
 
                     case 8:
-
+                        
                         ArrayList<Receita> receitas = Receita.listarReceitas();
-
-                        for (Receita r : receitas) {
-                            System.out.printf("Título da receita: %s\n", r.titulo);
-                            System.out.printf("Descrição: %s\n", r.descricao);
-                            System.out.printf("Imagem: %s\n", r.imagem);
-                            System.out.printf("Autor da receita: %s\n", r.usuario.nome);
-                        }
 
                         break;
 
@@ -141,28 +134,15 @@ public class Menu {
 
     public static Receita criarReceita(Scanner scanner) {
 
-        ArrayList<Usuario> usuarios = Usuario.listarUsuarios();
-        int i = 0;
-
-        System.out.printf("Digite o título da receita:");
+        System.out.println("Digite o título da receita:");
         String titulo = scanner.next();
-        System.out.printf("Digite o desrição da receita:");
+        System.out.println("Digite o desrição da receita:");
         String descricao = scanner.next();
-        System.out.printf("Insira uma imagem para a receita:");
+        System.out.println("Insira uma imgem para a receita:");
         String imagem = scanner.next();
-        System.out.printf("Escolha um id do usuário para ser autor da receita:\n");
-        for (Usuario u : usuarios) {
-            System.out.printf("[%d] - %s\n", u.idUsuario, u.nome);
-        }
-        int id = scanner.nextInt();
+        Usuario usuario = criarUsuario(scanner);
 
-        for (Usuario u : usuarios) {
-            if (id == u.idUsuario) {
+        return new Receita(titulo, descricao, imagem, usuario);
 
-            }
-        }
-        
-        
-        return new Receita(titulo, descricao, imagem,);
     }
 }
