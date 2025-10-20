@@ -56,8 +56,8 @@ public class Main {
                     case 2:
 
                         for (Categoria c : categorias) {
-                            System.out.printf("Descrição da categoria: %s\n", c.categoria);
-                            System.out.printf("Status da categoria: %s\n", (c.ativo == 1) ? "Ativo" : "Inativo");
+                            System.out.printf("Descrição da categoria: %s\n", c.getCategoria());
+                            System.out.printf("Status da categoria: %s\n", (c.getAtivo() == 1) ? "Ativo" : "Inativo");
                         }
 
                         break;
@@ -230,8 +230,8 @@ public class Main {
 
         System.out.printf("Escolha a categoria da receita pelo ID:\n");
         for (Categoria c : categorias) {
-            if (c.ativo == 1) {
-                System.out.printf("[%d] - %s\n", c.id, c.categoria);
+            if (c.getAtivo() == 1) {
+                System.out.printf("[%d] - %s\n", c.getId(), c.getCategoria());
             }
         }
         Integer idCategoria = Integer.parseInt(scanner.nextLine());
@@ -275,7 +275,7 @@ public class Main {
     public static Categoria buscarCategoriaPorId(int id) {
 
         for (Categoria c : categorias) {
-            if (c.id == id) {
+            if (c.getId() == id) {
                 return c;
             }
         }

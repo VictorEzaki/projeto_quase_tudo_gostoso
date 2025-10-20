@@ -35,7 +35,7 @@ public class Receita {
 
         System.out.println("Categorias:");
         for (ReceitaCategoria rc : receitaCategorias) {
-            System.out.println(" - " + rc.categoria.categoria);
+            System.out.println(" - " + rc.categoria.getCategoria());
         }
     }
     
