@@ -12,6 +12,7 @@ public class App {
         // Definindo as rotas
         server.createContext("/categorias", new Categoria());
         server.createContext("/usuario", new Usuario());
+        server.createContext("/receita", new Receita());
    
 
         // Iniciando o servidor

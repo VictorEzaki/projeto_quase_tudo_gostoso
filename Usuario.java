@@ -47,6 +47,8 @@ public class Usuario implements HttpHandler {
         this.uuid = UUID.randomUUID().toString();
         // this.receitas = new ArrayList<>();
         // this.comentarios = new ArrayList<>();
+
+        usuarios.add(this);
     }
 
     public void setId(int idUsuario) {
@@ -195,7 +197,6 @@ public class Usuario implements HttpHandler {
     private void handlePost(HttpExchange exchange) throws IOException {
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        System.out.println("BODY RECEBIDO: " + body);
 
         // Parse simples (sem Gson)
         // Exemplo: {"nome": "Tadeu", "email": "tadeu@mail.com", "dataNascimento":
@@ -207,14 +208,11 @@ public class Usuario implements HttpHandler {
         String cep = body.replaceAll("(?s).*\"cep\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String genero = body.replaceAll("(?s).*\"genero\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String senha = body.replaceAll("(?s).*\"senha\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-
         String dataInscricao = LocalDate.now().toString();
         String ativo = "1";
 
-        Usuario novoUsuario = new Usuario(nome, email, dataNascimento, Integer.parseInt(cep), Integer.parseInt(genero),
+        new Usuario(nome, email, dataNascimento, Integer.parseInt(cep), Integer.parseInt(genero),
                 senha, dataInscricao, Integer.parseInt(ativo));
-
-        usuarios.add(novoUsuario);
 
         String response = "{\"message\": \"Usuário adicionado com sucesso\"}";
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
