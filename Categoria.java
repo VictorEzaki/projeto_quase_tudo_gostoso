@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ArrayList;
 
 // Importações para o servidor HTTP
 import com.sun.net.httpserver.HttpHandler;
