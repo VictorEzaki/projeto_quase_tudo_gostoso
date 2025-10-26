@@ -13,6 +13,7 @@ public class App {
         server.createContext("/categorias", new Categoria());
         server.createContext("/usuario", new Usuario());
         server.createContext("/receita", new Receita());
+        server.createContext("/comentario", new Comentario());
    
 
         // Iniciando o servidor

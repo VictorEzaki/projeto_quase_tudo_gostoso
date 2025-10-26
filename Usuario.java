@@ -25,8 +25,9 @@ public class Usuario implements HttpHandler {
     private String uuid;
     private Integer ativo;
 
-    public static List<Receita> receitas = new ArrayList<>();
     public List<Comentario> comentarios = new ArrayList<>();
+    
+    private static ArrayList<Receita> receitas = new ArrayList<>();
     private static ArrayList<Usuario> usuarios = new ArrayList<>();
 
     public Usuario() {
@@ -45,8 +46,6 @@ public class Usuario implements HttpHandler {
         this.inscrito = inscrito;
         this.ativo = ativo;
         this.uuid = UUID.randomUUID().toString();
-        // this.receitas = new ArrayList<>();
-        // this.comentarios = new ArrayList<>();
 
         usuarios.add(this);
     }
@@ -95,7 +94,7 @@ public class Usuario implements HttpHandler {
         this.ativo = ativo;
     }
 
-    public int getId() {
+    public Integer getId() {
         return this.idUsuario;
     }
 
@@ -137,6 +136,28 @@ public class Usuario implements HttpHandler {
 
     public Integer getAtivo() {
         return this.ativo;
+    }
+
+    public static ArrayList<Usuario> getUsuarios() {
+        return usuarios;
+    }
+
+    public static Usuario getUsuario(int id) {
+        for (Usuario u : usuarios) {
+            if (u.getId().equals(id)) {
+                return u;
+            }
+        }
+        return null;
+    }
+
+    public static Receita getReceita(int id) {
+        for (Receita r : receitas) {
+            if (r.getIdReceita().equals(id)) {
+                return r;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -211,8 +232,16 @@ public class Usuario implements HttpHandler {
         String dataInscricao = LocalDate.now().toString();
         String ativo = "1";
 
-        new Usuario(nome, email, dataNascimento, Integer.parseInt(cep), Integer.parseInt(genero),
-                senha, dataInscricao, Integer.parseInt(ativo));
+        new Usuario(
+            nome, 
+            email, 
+            dataNascimento, 
+            Integer.parseInt(cep), 
+            Integer.parseInt(genero),
+            senha, 
+            dataInscricao, 
+            Integer.parseInt(ativo)
+        );
 
         String response = "{\"message\": \"Usuário adicionado com sucesso\"}";
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
@@ -224,7 +253,7 @@ public class Usuario implements HttpHandler {
         }
     }
 
-    public List<Receita> listarReceitas() {
+    public ArrayList<Receita> listarReceitas() {
         return receitas;
     }
 

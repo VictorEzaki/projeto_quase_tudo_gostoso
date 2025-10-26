@@ -16,25 +16,26 @@ public class Receita implements HttpHandler {
     private String titulo;
     private String descricao;
     private String imagem;
-    private Integer idUsuario;
-    // private Usuario usuario;
+    private Usuario usuario;
 
-    public List<ReceitaCategoria> receitaCategorias = new ArrayList<>();
-    public List<Comentario> comentarios = new ArrayList<>();
-
-    private static List<Receita> receitas = new ArrayList<>();
+    private ArrayList<ReceitaCategoria> receitaCategorias = new ArrayList<>();
+    private static ArrayList<Comentario> comentarios = new ArrayList<>();
 
     public Receita() {
     }
 
-    public Receita(String titulo, String descricao, String imagem, int idUsuario) {
+    public Receita(String titulo, String descricao, String imagem, Usuario usuario, ArrayList<Categoria> categorias) {
         this.idReceita = contador++;
         this.titulo = titulo;
         this.descricao = descricao;
         this.imagem = imagem;
-        this.idUsuario = idUsuario;
+        this.usuario = usuario;
 
-        receitas.add(this);
+        for (Categoria c : categorias) {
+            this.adicionarCategoria(c);
+        }
+
+        usuario.adicionarReceita(this);
     }
 
     public Integer getIdReceita() {
@@ -53,10 +54,6 @@ public class Receita implements HttpHandler {
         return this.imagem;
     }
 
-    public Integer getIdUsuario() {
-        return this.idUsuario;
-    }
-
     public void setIdReceita(int idReceita) {
         this.idReceita = idReceita;
     }
@@ -73,10 +70,6 @@ public class Receita implements HttpHandler {
         this.imagem = imagem;
     }
 
-    public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
     public void adicionarCategoria(Categoria categoria) {
         ReceitaCategoria associacao = new ReceitaCategoria(this, categoria);
         receitaCategorias.add(associacao);
@@ -91,12 +84,28 @@ public class Receita implements HttpHandler {
 
         System.out.println("Categorias:");
         for (ReceitaCategoria rc : receitaCategorias) {
-            System.out.println(" - " + rc.categoria.getCategoria());
+            System.out.println(" - " + rc.getCategoria());
         }
     }
 
     public void adicionarComentario(Comentario comentario) {
         comentarios.add(comentario);
+    }
+
+    public static ArrayList<Comentario> listarComentarios() {
+        return comentarios;
+    }
+
+    public static ArrayList<Comentario> listarComentariosPorReceita(int idReceita) {
+        ArrayList<Comentario> comentariosReceita = new ArrayList<>();
+
+        for (Comentario comentario : comentarios) {
+            if (comentario.getReceita().idReceita.equals(idReceita)) {
+                comentariosReceita.add(comentario);
+            }
+        }
+
+        return comentariosReceita;
     }
 
     @Override
@@ -119,12 +128,19 @@ public class Receita implements HttpHandler {
 
     private void handleGet(HttpExchange exchange) throws IOException {
         StringBuilder json = new StringBuilder("[");
-        for (int i = 0; i < receitas.size(); i++) {
-            Receita r = receitas.get(i);
-            json.append(String.format(
-                    "{\"idReceita\": \"%d\", \"titulo\": \"%s\", \"descricao\": \"%s\", \"imagem\": \"%s\", \"idUsuario\": \"%d\"}",
-                    r.getIdReceita(), r.getTitulo(), r.getDescricao(), r.getImagem(), r.getIdUsuario()));
+        boolean first = true;
+
+        for (Usuario u : Usuario.getUsuarios()) {
+            for (Receita r : u.listarReceitas()) {
+                if (!first)
+                    json.append(",");
+                json.append(String.format(
+                        "{\"idReceita\": \"%d\", \"titulo\": \"%s\", \"descricao\": \"%s\", \"imagem\": \"%s\", \"autor\": \"%s\"}",
+                        r.getIdReceita(), r.getTitulo(), r.getDescricao(), r.getImagem(), u.getNome()));
+                first = false;
+            }
         }
+
         json.append("]");
 
         byte[] bytes = json.toString().getBytes(StandardCharsets.UTF_8);
@@ -144,16 +160,32 @@ public class Receita implements HttpHandler {
         String imagem = body.replaceAll("(?s).*\"imagem\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String idUsuario = body.replaceAll("(?s).*\"idUsuario\"\\s*:\\s*\"([^\"]+)\".*", "$1");
 
-        new Receita(
-            titulo,
-            descricao,
-            imagem,
-            Integer.parseInt(idUsuario)
-        );
+        Usuario usuario = Usuario.getUsuario(Integer.parseInt(idUsuario));
+        if (usuario == null) {
+            String response = "{\"error\": \"Usuário não encontrado\"}";
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(404, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+            return;
+        }
+
+        String categoriasStr = body.replaceAll("(?s).*\"categorias\"\\s*:\\s*\\[([^\\]]+)\\].*", "$1");
+        String[] ids = categoriasStr.split(",");
+        ArrayList<Categoria> categorias = new ArrayList<>();
+        for (String id : ids) {
+            int catId = Integer.parseInt(id.trim());
+            Categoria c = Categoria.getCategoriaPorID(catId);
+            if (c != null) {
+                categorias.add(c);
+            }
+        }
+
+        new Receita(titulo, descricao, imagem, usuario, categorias);
 
         String response = "{\"message\": \"Receita adicionada com sucesso\"}";
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-
         exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
         exchange.sendResponseHeaders(201, bytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
@@ -168,7 +200,7 @@ public class Receita implements HttpHandler {
                 " | Título: " + this.getTitulo() +
                 " | Descrição: " + this.getDescricao() +
                 " | Imagem: " + this.getImagem() +
-                " | Usuário: " + (this.idUsuario);
+                " | Autor: " + (this.usuario.getNome());
 
         // ReceitaCategoria e comentário não foram refatoradas ainda
         // " | Categorias: " + (this.receitaCategorias.isEmpty() ? "Nenhuma"
