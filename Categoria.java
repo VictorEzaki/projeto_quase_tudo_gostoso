@@ -16,7 +16,7 @@ public class Categoria implements HttpHandler {
     private String categoria;
     private Boolean ativo;
 
-    public static ArrayList<Categoria> categorias = new ArrayList<>();
+    private static ArrayList<Categoria> categorias = new ArrayList<>();
     public List<ReceitaCategoria> receitaCategorias = new ArrayList<>();
 
     public Categoria(){}
@@ -43,6 +43,15 @@ public class Categoria implements HttpHandler {
 
     public String getCategoria() {
         return this.categoria;
+    }
+
+    public static Categoria getCategoriaPorID(int id) {
+        for (Categoria categoria : categorias) {
+            if (categoria.getId().equals(id)) {
+                return categoria;
+            }
+        }
+        return null;
     }
 
     public void setCategoria(String categoria) {
