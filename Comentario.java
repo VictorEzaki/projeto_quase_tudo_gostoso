@@ -141,7 +141,7 @@ public class Comentario implements HttpHandler {
             return;
         }
 
-        Receita receita = Usuario.getReceita(Integer.parseInt(idReceita));
+        Receita receita = usuario.getReceita(Integer.parseInt(idReceita));
 
         if (receita == null) {
             String response = "{\"error\": \"Receita não encontrada\"}";

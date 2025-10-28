@@ -25,9 +25,9 @@ public class Usuario implements HttpHandler {
     private String uuid;
     private Integer ativo;
 
-    public List<Comentario> comentarios = new ArrayList<>();
+    private List<Comentario> comentarios = new ArrayList<>();
+    private ArrayList<Receita> receitas = new ArrayList<>();
     
-    private static ArrayList<Receita> receitas = new ArrayList<>();
     private static ArrayList<Usuario> usuarios = new ArrayList<>();
 
     public Usuario() {
@@ -151,7 +151,7 @@ public class Usuario implements HttpHandler {
         return null;
     }
 
-    public static Receita getReceita(int id) {
+    public Receita getReceita(int id) {
         for (Receita r : receitas) {
             if (r.getIdReceita().equals(id)) {
                 return r;
