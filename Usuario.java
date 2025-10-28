@@ -25,7 +25,7 @@ public class Usuario implements HttpHandler {
     private String uuid;
     private Integer ativo;
 
-    public List<Comentario> comentarios = new ArrayList<>();
+    private List<Comentario> comentarios = new ArrayList<>();
     private ArrayList<Receita> receitas = new ArrayList<>();
     
     private static ArrayList<Usuario> usuarios = new ArrayList<>();
