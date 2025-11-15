@@ -6,15 +6,15 @@ public class Conexao {
     public static void main(String[] args) {
         try{
             Connection conexao = DAO.createConnection();
-            Categoria categoria = new Categoria();
+            Categoria categoria = new Categoria("teste", true);
 
             /* INSERT Usuário */
-            PreparedStatement stmt = conexao.prepareStatement(
-                "INSERT INTO categoria (id, categoria, ativo) VALUES (?, ?, ?);"
-            );
-            stmt.setString(2, categoria.getCategoria());
-            stmt.setBoolean(3, categoria.getAtivo());
-            stmt.execute();
+            // PreparedStatement stmt = conexao.prepareStatement(
+            //     "INSERT INTO categoria (categoria, ativo) VALUES (?, ?);"
+            // );
+            // stmt.setString(1, categoria.getCategoria());
+            // stmt.setBoolean(2, categoria.getAtivo());
+            // stmt.execute();
 
             /* SELECT ALL USERS */
             imprimirCategorias(conexao);

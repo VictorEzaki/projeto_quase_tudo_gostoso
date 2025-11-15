@@ -8,7 +8,7 @@ public abstract class DAO {
 
     public static Connection createConnection() {
         try {
-            final String URL = "jdbc:mysql://localhost:3306/quase_tudo_gostoso";
+            final String URL = "jdbc:mysql://localhost:3000/quase_tudo_gostoso_java";
             final String USER = "root";
             final String PASSWORD = "";
 
