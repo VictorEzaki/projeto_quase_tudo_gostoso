@@ -1,18 +1,9 @@
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpExchange;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-
-public class Usuario implements HttpHandler {
-    private static int contador = 1;
-
+public class Usuario {
     private Integer idUsuario;
     private String nome;
     private String email;
@@ -27,27 +18,36 @@ public class Usuario implements HttpHandler {
 
     private List<Comentario> comentarios = new ArrayList<>();
     private ArrayList<Receita> receitas = new ArrayList<>();
-    
+
     private static ArrayList<Usuario> usuarios = new ArrayList<>();
 
-    public Usuario() {
-    }
-
     public Usuario(String nome, String email, String data_nascimento, Integer cep, Integer genero,
-            String senha, String inscrito, Integer ativo) {
-        this.idUsuario = contador++;
+            String senha, String salt, String inscrito, String uuid, Integer ativo) {
         this.nome = nome;
         this.email = email;
         this.data_nascimento = data_nascimento;
         this.cep = cep;
         this.genero = genero;
         this.senha = senha;
-        this.salt = "salt_random";
+        this.salt = salt;
         this.inscrito = inscrito;
         this.ativo = ativo;
-        this.uuid = UUID.randomUUID().toString();
+        this.uuid = uuid;
+    }
 
-        usuarios.add(this);
+    public Usuario(int idUsuario, String nome, String email, String data_nascimento, Integer cep, Integer genero,
+            String senha, String salt, String inscrito, String uuid, Integer ativo) {
+        this.idUsuario = idUsuario;
+        this.nome = nome;
+        this.email = email;
+        this.data_nascimento = data_nascimento;
+        this.cep = cep;
+        this.genero = genero;
+        this.senha = senha;
+        this.salt = salt;
+        this.inscrito = inscrito;
+        this.ativo = ativo;
+        this.uuid = uuid;
     }
 
     public void setId(int idUsuario) {
@@ -79,7 +79,7 @@ public class Usuario implements HttpHandler {
     }
 
     public void setSalt(int salt) {
-        this.salt = "salt_random";
+        this.salt = "10";
     }
 
     public void setDataInscricao(String inscrito) {
@@ -163,94 +163,20 @@ public class Usuario implements HttpHandler {
     @Override
     public String toString() {
         String status = (this.getAtivo() == 1) ? "Ativo" : "Inativo";
-        return "" +
-                "Id:" + this.getId() +
-                "Nome:" + this.getNome() +
-                "Email:" + this.getEmail() +
-                "Data Nascimento:" + this.getDataNascimento() +
-                "CEP:" + this.getCep() +
-                "Gênero:" + this.getGenero() +
-                "Senha:" + this.getSenha() +
-                "Salt:" + this.getSalt() +
-                "Data Inscrição:" + this.getDataInscricao() +
-                "Status:" + status +
-                "UUID:" + this.getUuid();
-    }
 
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod();
-        if (method.equalsIgnoreCase("GET")) {
-            handleGet(exchange);
-        } else if (method.equalsIgnoreCase("POST")) {
-            handlePost(exchange);
-        } else {
-            String response = "Método não suportado";
-            byte[] bytes = response.getBytes("UTF-8");
-            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
-            exchange.sendResponseHeaders(405, bytes.length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(bytes);
-            os.close();
-        }
-    }
-
-    private void handleGet(HttpExchange exchange) throws IOException {
-        StringBuilder json = new StringBuilder("[");
-        for (int i = 0; i < usuarios.size(); i++) {
-            Usuario u = usuarios.get(i);
-            json.append(String.format(
-                    "{\"id\": \"%d\", \"nome\": \"%s\", \"email\": \"%s\", \"cep\": \"%d\", \"genero\": \"%d\", \"senha\": \"%s\", \"dataNascimento\": \"%s\", \"salt\": \"%s\", \"dataInscricao\": \"%s\", \"uuid\": \"%s\", \"ativo\": \"%d\"}",
-                    u.getId(), u.getNome(), u.getEmail(), u.getCep(), u.getGenero(), u.getSenha(),
-                    u.getDataNascimento(), u.getSalt(), u.getDataInscricao(), u.getUuid(), u.getAtivo()));
-
-        }
-        json.append("]");
-
-        byte[] bytes = json.toString().getBytes(StandardCharsets.UTF_8);
-        exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-        exchange.sendResponseHeaders(200, bytes.length);
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(bytes);
-        }
-    }
-
-    private void handlePost(HttpExchange exchange) throws IOException {
-        InputStream is = exchange.getRequestBody();
-        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
-        // Parse simples (sem Gson)
-        // Exemplo: {"nome": "Tadeu", "email": "tadeu@mail.com", "dataNascimento":
-        // "01/01/1990", "cep": "89205035", "genero": "Masculino", "senha": "123456",
-        // "salt": 64, "dataInscricao": "20/10/2025", "uuid": "1234-5678-90AB"}
-        String nome = body.replaceAll("(?s).*\"nome\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String email = body.replaceAll("(?s).*\"email\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String dataNascimento = body.replaceAll("(?s).*\"dataNascimento\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String cep = body.replaceAll("(?s).*\"cep\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String genero = body.replaceAll("(?s).*\"genero\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String senha = body.replaceAll("(?s).*\"senha\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String dataInscricao = LocalDate.now().toString();
-        String ativo = "1";
-
-        new Usuario(
-            nome, 
-            email, 
-            dataNascimento, 
-            Integer.parseInt(cep), 
-            Integer.parseInt(genero),
-            senha, 
-            dataInscricao, 
-            Integer.parseInt(ativo)
-        );
-
-        String response = "{\"message\": \"Usuário adicionado com sucesso\"}";
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-
-        exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-        exchange.sendResponseHeaders(201, bytes.length);
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(bytes);
-        }
+        return "\n=== Usuário ==========================\n" +
+                "ID:               " + this.getId() + "\n" +
+                "Nome:             " + this.getNome() + "\n" +
+                "Email:            " + this.getEmail() + "\n" +
+                "Data Nascimento:  " + this.getDataNascimento() + "\n" +
+                "CEP:              " + this.getCep() + "\n" +
+                "Gênero:           " + this.getGenero() + "\n" +
+                "Senha:            " + this.getSenha() + "\n" +
+                "Salt:             " + this.getSalt() + "\n" +
+                "Data Inscrição:   " + this.getDataInscricao() + "\n" +
+                "Status:           " + status + "\n" +
+                "UUID:             " + this.getUuid() + "\n" +
+                "======================================\n";
     }
 
     public ArrayList<Receita> listarReceitas() {

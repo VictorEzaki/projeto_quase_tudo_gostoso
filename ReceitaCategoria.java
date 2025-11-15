@@ -1,25 +1,33 @@
 public class ReceitaCategoria {
-    private Receita receita;
-    private Categoria categoria;
+    private Integer idReceita;
+    private Integer idCategoria;
 
-    public ReceitaCategoria(Receita receita, Categoria categoria) {
-        this.receita = receita;
-        this.categoria = categoria;
+    public ReceitaCategoria(Integer idReceita, Integer idCategoria) {
+        this.idReceita = idReceita;
+        this.idCategoria = idCategoria;
     }
 
-    public Receita getReceita() {
-        return receita;
+    public Integer getIdReceita() {
+        return idReceita;
     }
 
-    public Categoria getCategoria() {
-        return categoria;
+    public Integer getIdCategoria() {
+        return idCategoria;
     }
 
-    public void setReceita(Receita receita) {
-        this.receita = receita;
+    public void setReceita(Integer idReceita) {
+        this.idReceita = idReceita;
     }
 
-    public void satCategoria(Categoria categoria) {
-        this.categoria = categoria;
+    public void satCategoria(Integer idCategoria) {
+        this.idCategoria = idCategoria;
+    }
+
+    @Override
+    public String toString() {
+        return "\n--- Receita x Categoria ---" +
+                "\nID da Receita: " + this.getIdReceita() +
+                "\nID da Categoria: " + this.getIdCategoria() +
+                "\n---------------------------";
     }
 }

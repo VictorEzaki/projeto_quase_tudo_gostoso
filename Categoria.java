@@ -13,13 +13,6 @@ public class Categoria {
     public Categoria(String categoria, Boolean ativo) throws Exception {
         this.categoria = categoria;
         this.ativo = ativo;
-
-        PreparedStatement stmt = DAO.createConnection().prepareStatement(
-                "INSERT INTO categoria (categoria, ativo) VALUES (?, ?);");
-        stmt.setString(1, this.getCategoria());
-        stmt.setBoolean(2, this.getAtivo());
-        stmt.execute();
-        DAO.closeConnection();
     }
 
     public Categoria(Integer id, String categoria, Boolean ativo) {

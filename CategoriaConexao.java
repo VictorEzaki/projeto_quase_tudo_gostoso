@@ -5,43 +5,38 @@ import java.sql.ResultSet;
 public class CategoriaConexao {
     public static void main(String[] args) {
         try {
-            Connection conexao = DAO.createConnection();
+            Categoria categoria = new Categoria("Japonesa", true);
+            criarCategoria(categoria);
 
-            /*
-                Lembrem-se de descomentar ou comentar determinada função para executar ou não executar respectivamente quando clicar em "Run"
-            */
+            Categoria categoria2 = new Categoria("Italiana", true);
+            editarCategoria(categoria2, 1);
 
-            // Chama a função resposável por criar uma categoria (como não tem menu, para criar precisa alterar os parâmetros na chamada manualmente)
-            // criarCategoria("Brasileira", true);
+            deletarCategoria(1);
 
-            // Chama a função de editar uma categoria por ID (como não tem menu, para deletar precisa alterar os parâmetros na chamada manualmente)
-            // editarCategoria(conexao, "italiana", true, 2);
-
-            // Chama a função de deletar uma categoria por ID (como não tem menu, para deletar precisa alterar os parâmetros na chamada manualmente)
-            // deletarCategoria(conexao, 1);
-
-            // Função que exibe todas as categorias
-            // imprimirCategorias(conexao);
+            imprimirCategorias();
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    // Funções que manipulam os dados no banco
-    public static void criarCategoria(String categoria, Boolean ativo) {
+    public static void criarCategoria(Categoria c) {
         try {
-            Categoria novaCategoria = new Categoria(categoria, ativo);
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
+                    "INSERT INTO categoria (categoria, ativo) VALUES (?, ?);");
 
-            System.out.printf("=== Categoria criada ===\n");
-            System.out.printf("Nome da categoria: %s\n", novaCategoria.getCategoria());
-            System.out.printf("Status: %s\n", (novaCategoria.getAtivo().equals(true)) ? "Ativo" : "Inativo");
+            stmt.setString(1, c.getCategoria());
+            stmt.setBoolean(2, c.getAtivo());
+            stmt.execute();
+
+            DAO.closeConnection();
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    // Função responsável por exibir todas as categorias
-    public static void imprimirCategorias(Connection conexao) throws Exception {
+    public static void imprimirCategorias() throws Exception {
+        Connection conexao = DAO.createConnection();
+
         ResultSet rs = conexao.createStatement().executeQuery(
                 "SELECT * FROM categoria;");
         while (rs.next()) {
@@ -52,29 +47,35 @@ public class CategoriaConexao {
             System.out.println(categoria2);
             System.out.println("===================================");
         }
+
+        DAO.closeConnection();
     }
 
-    // Função responsável por editar uma categoria existente
-    public static void editarCategoria(Connection conexao, String categoria, Boolean ativo, int id) {
+    public static void editarCategoria(Categoria c, int id) {
         try {
-            PreparedStatement stmt = conexao.prepareStatement(
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
                     "UPDATE categoria SET categoria = ?, ativo = ? WHERE id = ?;");
-            stmt.setString(1, categoria);
-            stmt.setBoolean(2, ativo);
+
+            stmt.setString(1, c.getCategoria());
+            stmt.setBoolean(2, c.getAtivo());
             stmt.setInt(3, id);
             stmt.execute();
+
+            DAO.closeConnection();
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    // Função responsável por deletar uma categoria por ID existente
-    public static void deletarCategoria(Connection conexao, int id) {
+    public static void deletarCategoria(int id) {
         try {
-            PreparedStatement stmt = conexao.prepareStatement(
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
                     "DELETE FROM categoria WHERE id = ?;");
+
             stmt.setInt(1, id);
             stmt.execute();
+
+            DAO.closeConnection();
         } catch (Exception e) {
             System.out.println(e);
         }
