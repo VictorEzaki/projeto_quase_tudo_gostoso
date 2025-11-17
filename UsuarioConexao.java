@@ -8,10 +8,10 @@ public class UsuarioConexao {
             Usuario usuario = new Usuario("Victor", "victor@victor.com", "2003-03-19", 12312312, 1, "senhaMuitoSegura", "10", "2025-11-15", "12312312dsdawds", 1);
             criarUsuario(usuario);
 
-            Usuario usuarioEditado = new Usuario("Bruno", "bruno@example.com", "2003-03-19", 12312312, 1, "senhaMuitoSegura", "10", "2025-11-15", "12312312dsdawds", 1);
-            editarUsuario(usuarioEditado, 1);
+            // Usuario usuarioEditado = new Usuario("Bruno", "bruno@example.com", "2003-03-19", 12312312, 1, "senhaMuitoSegura", "10", "2025-11-15", "12312312dsdawds", 1);
+            // editarUsuario(usuarioEditado, 1);
 
-            deletarUsuario(1);
+            // deletarUsuario(1);
 
             imprimirUsuarios();
         } catch (Exception e) {
