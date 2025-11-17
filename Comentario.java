@@ -6,7 +6,13 @@ public class Comentario {
     private Integer nota;
     private String dataComentario;
 
-    public Comentario() {
+    public Comentario(int idReceita, int idUsuario, String comentario, Integer nota,
+            String dataComentario) {
+        this.idReceita = idReceita;
+        this.idUsuario = idUsuario;
+        this.comentario = comentario;
+        this.nota = nota;
+        this.dataComentario = dataComentario;
     }
 
     public Comentario(int idComentario, int idReceita, int idUsuario, String comentario, Integer nota,
