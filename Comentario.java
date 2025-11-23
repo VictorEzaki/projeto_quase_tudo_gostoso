@@ -2,34 +2,52 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public class Comentario implements HttpHandler{
+public class Comentario implements HttpHandler {
     private Integer idComentario;
     private Integer idReceita;
     private Integer idUsuario;
     private String comentario;
     private Integer nota;
-    private String dataComentario;
+    private LocalDateTime dataComentario;
 
     public Comentario() {
 
     }
 
     public Comentario(int idReceita, int idUsuario, String comentario, Integer nota,
-            String dataComentario) {
+            LocalDateTime dataComentario) {
         this.idReceita = idReceita;
         this.idUsuario = idUsuario;
         this.comentario = comentario;
         this.nota = nota;
         this.dataComentario = dataComentario;
+
+        try {
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
+                    "INSERT INTO comentario (receita_idreceita, usuario_idusuario, comentario, nota, datacomentario) VALUES (?, ?, ?, ?, ?);");
+
+            stmt.setInt(1, this.getIdReceita());
+            stmt.setInt(2, this.getIdUsuario());
+            stmt.setString(3, this.getComentario());
+            stmt.setInt(4, this.getNota());
+            stmt.setTimestamp(5, java.sql.Timestamp.valueOf(this.getDataComentario()));
+            stmt.execute();
+            DAO.closeConnection();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
 
     public Comentario(int idComentario, int idReceita, int idUsuario, String comentario, Integer nota,
-            String dataComentario) {
+            LocalDateTime dataComentario) {
         this.idComentario = idComentario;
         this.idReceita = idReceita;
         this.idUsuario = idUsuario;
@@ -50,7 +68,7 @@ public class Comentario implements HttpHandler{
         return this.nota;
     }
 
-    public String getDataComentario() {
+    public LocalDateTime getDataComentario() {
         return this.dataComentario;
     }
 
@@ -70,7 +88,7 @@ public class Comentario implements HttpHandler{
         this.nota = nota;
     }
 
-    public void setDataComentario(String dataComentario) {
+    public void setDataComentario(LocalDateTime dataComentario) {
         this.dataComentario = dataComentario;
     }
 
@@ -113,40 +131,93 @@ public class Comentario implements HttpHandler{
     }
 
     private void handleGet(HttpExchange exchange) throws IOException {
-        // StringBuilder json = new StringBuilder("[");
-        // boolean first = true;
+        String query = exchange.getRequestURI().getQuery();
+        Integer filtroReceita = null;
 
-        // int idReceita = 1;
+        if (query != null && query.contains("receita=")) {
+            filtroReceita = Integer.parseInt(query.replaceAll(".*receita=(\\d+).*", "$1"));
+        }
 
-        // for (Comentario c : Receita.listarComentariosPorReceita(idReceita)) {
-        //     if (!first)
-        //         json.append(",");
-        //     json.append(String.format(
-        //             "{\"idComentario\": \"%d\", \"idReceita\": \"%d\", \"autor_comentario\": \"%s\", \"comentario\": \"%s\", \"nota\": \"%s\", \"data_comentario\": \"%s\"}",
-        //             c.getIdComentario(), c.receita.getIdReceita(), c.usuario.getNome(), c.getComentario(), c.getNota(),
-        //             c.dataComentario));
-        //     first = false;
-        // }
+        String sql = "SELECT c.idcomentario, c.receita_idreceita, c.usuario_idusuario, " +
+                "c.comentario, c.nota, c.datacomentario, u.nome AS autor " +
+                "FROM comentario c " +
+                "JOIN usuario u ON u.idusuario = c.usuario_idusuario";
 
-        // json.append("]");
+        if (filtroReceita != null) {
+            sql += " WHERE c.receita_idreceita = ?";
+        }
 
-        // byte[] bytes = json.toString().getBytes(StandardCharsets.UTF_8);
-        // exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-        // exchange.sendResponseHeaders(200, bytes.length);
-        // try (OutputStream os = exchange.getResponseBody()) {
-        //     os.write(bytes);
-        // }
+        StringBuilder json = new StringBuilder("[");
+        boolean first = true;
+
+        try {
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(sql);
+
+            if (filtroReceita != null) {
+                stmt.setInt(1, filtroReceita);
+            }
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                if (!first) {
+                    json.append(",");
+                }
+
+                json.append(String.format(
+                        "{\"idComentario\": %d, \"idReceita\": %d, \"idUsuario\": %d, " +
+                                "\"autor\": \"%s\", \"comentario\": \"%s\", \"nota\": %d, " +
+                                "\"dataComentario\": \"%s\"}",
+                        rs.getInt("idcomentario"),
+                        rs.getInt("receita_idreceita"),
+                        rs.getInt("usuario_idusuario"),
+                        rs.getString("autor"),
+                        rs.getString("comentario").replace("\"", "\\\""),
+                        rs.getInt("nota"),
+                        rs.getTimestamp("datacomentario").toLocalDateTime()));
+
+                first = false;
+            }
+
+            DAO.closeConnection();
+
+        } catch (Exception e) {
+            System.out.println("Erro ao buscar comentários: " + e.getMessage());
+        }
+
+        json.append("]");
+
+        byte[] bytes = json.toString().getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+        exchange.sendResponseHeaders(200, bytes.length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(bytes);
+        }
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {
+        /*
+        Exemplo de JSON
+        
+        {
+        "receita_idreceita": 1,
+        "usuario_idusuario": 1,
+        "comentario": "Muito boa receita",
+        "nota": 10
+        }
+        
+        */
+
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-        String idReceita = body.replaceAll("(?s).*\"idReceita\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String idUsuario = body.replaceAll("(?s).*\"idUsuario\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String comentario = body.replaceAll("(?s).*\"comentario\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String nota = body.replaceAll("(?s).*\"nota\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String dataComentario = LocalDate.now().toString();
+        String idReceita = body.replaceAll("(?s).*\"receita_idreceita\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+        String idUsuario = body.replaceAll("(?s).*\"usuario_idusuario\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+        String comentario = body.replaceAll("(?s).*\"comentario\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+        String nota = body.replaceAll("(?s).*\"nota\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+
+        LocalDateTime dataComentario = LocalDateTime.now();
 
         Usuario usuario = Usuario.getUsuario(Integer.parseInt(idUsuario));
 
@@ -179,7 +250,7 @@ public class Comentario implements HttpHandler{
                 Integer.parseInt(nota),
                 dataComentario);
 
-        String response = "{\"message\": \"Receita adicionada com sucesso\"}";
+        String response = "{\"message\": \"Comentário adicionada com sucesso\"}";
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
 
         exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");

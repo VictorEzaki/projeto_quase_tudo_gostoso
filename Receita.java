@@ -35,7 +35,7 @@ public class Receita implements HttpHandler {
         try {
 
             PreparedStatement stmt = DAO.createConnection().prepareStatement(
-                    "INSERT INTO receita (titulo, descricao, imagem, idUsuario) VALUES (?, ?, ?, ?);",
+                    "INSERT INTO receita (titulo, descricao, imagem, cadastro_idusuario) VALUES (?, ?, ?, ?);",
                     PreparedStatement.RETURN_GENERATED_KEYS);
 
             stmt.setString(1, this.getTitulo());
@@ -54,7 +54,7 @@ public class Receita implements HttpHandler {
 
             for (Integer idCategoria : categoriasIds) {
                 PreparedStatement stmtRel = DAO.createConnection().prepareStatement(
-                        "INSERT INTO receita_categoria (idReceita, idCategoria) VALUES (?, ?)");
+                        "INSERT INTO categoria_receita (receita_idreceita, categoria_idcategoria) VALUES (?, ?)");
 
                 stmtRel.setInt(1, idReceitaGerada);
                 stmtRel.setInt(2, idCategoria);
@@ -69,7 +69,8 @@ public class Receita implements HttpHandler {
         }
     }
 
-    public Receita(int idReceita, String titulo, String descricao, String imagem, int idUsuario) {
+    public Receita(int idReceita, String titulo, String descricao, String imagem, int idUsuario,
+            ArrayList<Integer> categoriasIds) {
         this.idReceita = idReceita;
         this.titulo = titulo;
         this.descricao = descricao;
@@ -155,9 +156,9 @@ public class Receita implements HttpHandler {
     }
 
     private void handleGet(HttpExchange exchange) throws IOException {
-        String query = "SELECT r.idReceita, r.titulo, r.descricao, r.imagem, u.nome AS autor " +
+        String query = "SELECT r.idreceita, r.titulo, r.descricao, r.imagem, u.nome AS autor " +
                 "FROM receita r " +
-                "INNER JOIN usuario u ON r.idUsuario = u.idUsuario;";
+                "INNER JOIN usuario u ON r.cadastro_idusuario = u.idusuario;";
 
         StringBuilder json = new StringBuilder("[");
         boolean first = true;
@@ -172,7 +173,7 @@ public class Receita implements HttpHandler {
 
                 json.append(String.format(
                         "{\"idReceita\": \"%d\", \"titulo\": \"%s\", \"descricao\": \"%s\", \"imagem\": \"%s\", \"autor\": \"%s\"}",
-                        rs.getInt("idReceita"),
+                        rs.getInt("idreceita"),
                         rs.getString("titulo"),
                         rs.getString("descricao"),
                         rs.getString("imagem"),
@@ -204,13 +205,26 @@ public class Receita implements HttpHandler {
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {
+        /*
+        Exemplo de JSON
+        
+        {
+        "titulo": "Bolo de cenoura",
+        "descricao": "Bolo de cenoura com muita cobertura de chocolate",
+        "imagem": "Imagem do bolo",
+        "cadastro_idusuario": 1,
+        "categorias": [1, 2]
+        }
+        
+        */
+
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
         String titulo = body.replaceAll("(?s).*\"titulo\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String descricao = body.replaceAll("(?s).*\"descricao\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String imagem = body.replaceAll("(?s).*\"imagem\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String idUsuarioStr = body.replaceAll("(?s).*\"idUsuario\"\\s*:\\s*\"?([0-9]+)\"?.*", "$1");
+        String idUsuarioStr = body.replaceAll("(?s).*\"cadastro_idusuario\"\\s*:\\s*\"?([0-9]+)\"?.*", "$1");
 
         Usuario usuario = Usuario.getUsuario(Integer.parseInt(idUsuarioStr));
         if (usuario == null) {

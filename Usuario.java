@@ -8,22 +8,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Usuario implements HttpHandler {
     private Integer idUsuario;
     private String nome;
     private String email;
-    private String data_nascimento;
+    private LocalDate data_nascimento;
     private Integer cep;
     private Integer genero;
     private String senha;
     private String salt;
-    private String inscrito;
+    private LocalDateTime inscrito;
     private String uuid;
-    private Integer ativo;
 
     private List<Comentario> comentarios = new ArrayList<>();
     private ArrayList<Receita> receitas = new ArrayList<>();
@@ -34,8 +35,8 @@ public class Usuario implements HttpHandler {
 
     }
 
-    public Usuario(String nome, String email, String data_nascimento, Integer cep, Integer genero,
-            String senha, String inscrito, Integer ativo) {
+    public Usuario(String nome, String email, LocalDate data_nascimento, Integer cep, Integer genero,
+            String senha, LocalDateTime inscrito) {
 
         this.nome = nome;
         this.email = email;
@@ -44,36 +45,33 @@ public class Usuario implements HttpHandler {
         this.genero = genero;
         this.senha = senha;
         this.inscrito = inscrito;
-        this.ativo = ativo;
         this.uuid = UUID.randomUUID().toString();
-
         this.salt = "10";
 
         try {
             PreparedStatement stmt = DAO.createConnection().prepareStatement(
-                    "INSERT INTO usuario (nome, email, data_nascimento, cep, genero, senha, salt, inscrito, uuid, ativo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+                    "INSERT INTO usuario (nome, email, data_nascimento, cep, genero, senha, salt, inscrito, uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             stmt.setString(1, this.getNome());
             stmt.setString(2, this.getEmail());
-            stmt.setString(3, this.getDataNascimento());
+            stmt.setDate(3, java.sql.Date.valueOf(this.getDataNascimento()));
             stmt.setInt(4, this.getCep());
             stmt.setInt(5, this.getGenero());
             stmt.setString(6, this.getSenha());
             stmt.setString(7, this.getSalt());
-            stmt.setString(8, this.getDataInscricao());
+            stmt.setTimestamp(8, java.sql.Timestamp.valueOf(this.getDataInscricao()));
             stmt.setString(9, this.getUuid());
-            stmt.setInt(10, this.getAtivo());
-            stmt.execute();
 
+            stmt.execute();
             DAO.closeConnection();
         } catch (Exception e) {
             System.out.println(e);
         }
-
     }
 
-    public Usuario(int idUsuario, String nome, String email, String data_nascimento, Integer cep, Integer genero,
-            String senha, String salt, String inscrito, String uuid, Integer ativo) {
+    public Usuario(int idUsuario, String nome, String email, LocalDate data_nascimento, Integer cep, Integer genero,
+            String senha, String salt, LocalDateTime inscrito, String uuid) {
+
         this.idUsuario = idUsuario;
         this.nome = nome;
         this.email = email;
@@ -83,7 +81,6 @@ public class Usuario implements HttpHandler {
         this.senha = senha;
         this.salt = salt;
         this.inscrito = inscrito;
-        this.ativo = ativo;
         this.uuid = uuid;
     }
 
@@ -99,7 +96,7 @@ public class Usuario implements HttpHandler {
         this.email = email;
     }
 
-    public void setDataNascimento(String data_nascimento) {
+    public void setDataNascimento(LocalDate data_nascimento) {
         this.data_nascimento = data_nascimento;
     }
 
@@ -119,16 +116,12 @@ public class Usuario implements HttpHandler {
         this.salt = "10";
     }
 
-    public void setDataInscricao(String inscrito) {
+    public void setDataInscricao(LocalDateTime inscrito) {
         this.inscrito = inscrito;
     }
 
     public void setUuid(String uuid) {
         this.uuid = UUID.randomUUID().toString();
-    }
-
-    public void setAtivo(Integer ativo) {
-        this.ativo = ativo;
     }
 
     public Integer getId() {
@@ -143,7 +136,7 @@ public class Usuario implements HttpHandler {
         return this.email;
     }
 
-    public String getDataNascimento() {
+    public LocalDate getDataNascimento() {
         return this.data_nascimento;
     }
 
@@ -163,7 +156,7 @@ public class Usuario implements HttpHandler {
         return this.salt;
     }
 
-    public String getDataInscricao() {
+    public LocalDateTime getDataInscricao() {
         return this.inscrito;
     }
 
@@ -171,60 +164,82 @@ public class Usuario implements HttpHandler {
         return this.uuid;
     }
 
-    public Integer getAtivo() {
-        return this.ativo;
-    }
-
     public static ArrayList<Usuario> getUsuarios() {
         return usuarios;
     }
 
     public static Usuario getUsuario(int id) {
-    try {
-        PreparedStatement stmt = DAO.createConnection()
-            .prepareStatement("SELECT * FROM usuario WHERE idUsuario = ?");
-        
-        stmt.setInt(1, id);
-        ResultSet rs = stmt.executeQuery();
+        try {
+            PreparedStatement stmt = DAO.createConnection()
+                    .prepareStatement("SELECT * FROM usuario WHERE idusuario = ?");
 
-        if (rs.next()) {
-            Usuario u = new Usuario(
-                rs.getInt("idUsuario"),
-                rs.getString("nome"),
-                rs.getString("email"),
-                rs.getString("data_nascimento"),
-                rs.getInt("cep"),
-                rs.getInt("genero"),
-                rs.getString("senha"),
-                rs.getString("salt"),
-                rs.getString("inscrito"),
-                rs.getString("uuid"),
-                rs.getInt("ativo")
-            );
-            return u;
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                Usuario u = new Usuario(
+                        rs.getInt("idusuario"),
+                        rs.getString("nome"),
+                        rs.getString("email"),
+                        rs.getDate("data_nascimento").toLocalDate(),
+                        rs.getInt("cep"),
+                        rs.getInt("genero"),
+                        rs.getString("senha"),
+                        rs.getString("salt"),
+                        rs.getTimestamp("inscrito").toLocalDateTime(),
+                        rs.getString("uuid"));
+                return u;
+            }
+            return null;
+
+        } catch (Exception e) {
+            System.out.println("Erro ao consultar usuário: " + e.getMessage());
+            return null;
         }
-        return null;
-
-    } catch (Exception e) {
-        System.out.println("Erro ao consultar usuário: " + e.getMessage());
-        return null;
     }
-}
-
 
     public Receita getReceita(int id) {
-        for (Receita r : receitas) {
-            if (r.getIdReceita().equals(id)) {
+        try {
+            PreparedStatement stmt = DAO.createConnection()
+                    .prepareStatement("SELECT * FROM receita WHERE idReceita = ?");
+
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                ArrayList<Integer> categoriasIds = new ArrayList<>();
+
+                PreparedStatement stmtCat = DAO.createConnection()
+                        .prepareStatement(
+                                "SELECT categoria_idcategoria FROM categoria_receita WHERE receita_idreceita = ?");
+                stmtCat.setInt(1, id);
+                ResultSet rsCat = stmtCat.executeQuery();
+
+                while (rsCat.next()) {
+                    categoriasIds.add(rsCat.getInt("categoria_idcategoria"));
+                }
+
+                Receita r = new Receita(
+                        rs.getInt("idreceita"),
+                        rs.getString("titulo"),
+                        rs.getString("descricao"),
+                        rs.getString("imagem"),
+                        rs.getInt("cadastro_idusuario"),
+                        categoriasIds);
+
                 return r;
             }
+
+            return null;
+
+        } catch (Exception e) {
+            System.out.println("Erro ao consultar receita: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
     @Override
     public String toString() {
-        String status = (this.getAtivo() == 1) ? "Ativo" : "Inativo";
-
         return "\n=== Usuário ==========================\n" +
                 "ID:               " + this.getId() + "\n" +
                 "Nome:             " + this.getNome() + "\n" +
@@ -235,7 +250,6 @@ public class Usuario implements HttpHandler {
                 "Senha:            " + this.getSenha() + "\n" +
                 "Salt:             " + this.getSalt() + "\n" +
                 "Data Inscrição:   " + this.getDataInscricao() + "\n" +
-                "Status:           " + status + "\n" +
                 "UUID:             " + this.getUuid() + "\n" +
                 "======================================\n";
     }
@@ -271,7 +285,7 @@ public class Usuario implements HttpHandler {
     }
 
     private void handleGet(HttpExchange exchange) throws IOException {
-        String query = "SELECT idUsuario, nome, email, data_nascimento, cep, genero, senha, salt, inscrito, uuid, ativo FROM usuario";
+        String query = "SELECT idUsuario, nome, email, data_nascimento, cep, genero, senha, salt, inscrito, uuid FROM usuario";
 
         StringBuilder json = new StringBuilder("[");
         boolean first = true;
@@ -297,7 +311,6 @@ public class Usuario implements HttpHandler {
                         .append("\"salt\": \"").append(rs.getString("salt")).append("\",")
                         .append("\"dataInscricao\": \"").append(rs.getString("inscrito")).append("\",")
                         .append("\"uuid\": \"").append(rs.getString("uuid")).append("\",")
-                        .append("\"ativo\": \"").append(rs.getInt("ativo")).append("\"")
                         .append("}");
             }
 
@@ -309,7 +322,6 @@ public class Usuario implements HttpHandler {
 
         json.append("]");
 
-        // Resposta
         byte[] bytes = json.toString().getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
         exchange.sendResponseHeaders(200, bytes.length);
@@ -319,21 +331,31 @@ public class Usuario implements HttpHandler {
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {
+        /*
+        exemplo de JSON
+        
+        {
+        "nome": "{{$randomFirstName}}",
+        "email": "{{$randomEmail}}",
+        "dataNascimento": "2003-03-19",
+        "cep": "90124170",
+        "genero": "1",
+        "senha": "{{$randomPassword}}"
+        }
+        
+        */
+
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-        // Parse simples (sem Gson)
-        // Exemplo: {"nome": "Tadeu", "email": "tadeu@mail.com", "dataNascimento":
-        // "01/01/1990", "cep": "89205035", "genero": "Masculino", "senha": "123456",
-        // "salt": 64, "dataInscricao": "20/10/2025", "uuid": "1234-5678-90AB"}
         String nome = body.replaceAll("(?s).*\"nome\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String email = body.replaceAll("(?s).*\"email\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String dataNascimento = body.replaceAll("(?s).*\"dataNascimento\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+        LocalDate dataNascimento = LocalDate
+                .parse(body.replaceAll("(?s).*\"dataNascimento\"\\s*:\\s*\"([^\"]+)\".*", "$1"));
         String cep = body.replaceAll("(?s).*\"cep\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String genero = body.replaceAll("(?s).*\"genero\"\\s*:\\s*\"([^\"]+)\".*", "$1");
         String senha = body.replaceAll("(?s).*\"senha\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String dataInscricao = LocalDate.now().toString();
-        String ativo = "1";
+        LocalDateTime dataInscricao = LocalDateTime.now();
 
         new Usuario(
                 nome,
@@ -342,8 +364,7 @@ public class Usuario implements HttpHandler {
                 Integer.parseInt(cep),
                 Integer.parseInt(genero),
                 senha,
-                dataInscricao,
-                Integer.parseInt(ativo));
+                dataInscricao);
 
         String response = "{\"message\": \"Usuário adicionado com sucesso\"}";
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);

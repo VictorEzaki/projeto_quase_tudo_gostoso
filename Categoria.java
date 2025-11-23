@@ -110,7 +110,7 @@ public class Categoria implements HttpHandler {
     }
 
     private void handleGet(HttpExchange exchange) throws IOException {
-        String query = "SELECT id, categoria, ativo FROM categoria";
+        String query = "SELECT idcategoria, categoria, ativo FROM categoria";
 
         StringBuilder json = new StringBuilder("[");
         boolean first = true;
@@ -124,7 +124,7 @@ public class Categoria implements HttpHandler {
                     json.append(",");
 
                 json.append("{")
-                        .append("\"id\": ").append(rs.getInt("id")).append(",")
+                        .append("\"idcategoria\": ").append(rs.getInt("idcategoria")).append(",")
                         .append("\"categoria\": \"").append(rs.getString("categoria")).append("\",")
                         .append("\"ativo\": ").append(rs.getBoolean("ativo"))
                         .append("}");
@@ -154,13 +154,21 @@ public class Categoria implements HttpHandler {
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {
+        /*
+        Exemplo de JSON
+
+        {
+        "categoria": "sobremesa",
+        "ativo": 1
+        }
+        
+        */
+
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-        // Parse simples (sem Gson)
-        // Exemplo de entrada: {"nome":"Italiana", "ativo":"true"}
-        String nome = body.replaceAll(".*\"categoria\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-        String sAtivo = body.replaceAll(".*\"ativo\"\\s*:\\s*(\\d+).*", "$1");
+        String nome = body.replaceAll("(?s).*\"categoria\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+        String sAtivo = body.replaceAll("(?s).*\"ativo\"\\s*:\\s*(\\d+).*", "$1");
         int ativo = Integer.parseInt(sAtivo);
 
         new Categoria(nome, ativo);
