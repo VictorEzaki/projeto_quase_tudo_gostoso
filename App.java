@@ -3,6 +3,9 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+/*
+    Alunos: Victor Takeyoshi Kieper Ezaki, Bruno Ricardo Leite.
+*/
 
 public class App {
     public static void main(String[] args) throws IOException {
@@ -14,7 +17,6 @@ public class App {
         server.createContext("/usuario", new Usuario());
         server.createContext("/receita", new Receita());
         server.createContext("/comentario", new Comentario());
-   
 
         // Iniciando o servidor
         server.setExecutor(null);
