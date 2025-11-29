@@ -105,7 +105,7 @@ public class Comentario implements HttpHandler {
         return "\n----------- Comentário -----------" +
                 "\nID do Comentário: " + this.idComentario +
                 "\nID da Receita: " + this.idReceita +
-                "\nID do Usuário: " + this.idUsuario +
+                "\nID do Comentário: " + this.idUsuario +
                 "\nComentário: " + this.comentario +
                 "\nNota: " + this.nota +
                 "\nData do Comentário: " + this.dataComentario +
@@ -119,6 +119,10 @@ public class Comentario implements HttpHandler {
             handleGet(exchange);
         } else if (method.equalsIgnoreCase("POST")) {
             handlePost(exchange);
+        } else if (method.equalsIgnoreCase("PUT")) {
+            handlePut(exchange);
+        } else if (method.equalsIgnoreCase("DELETE")) {
+            handleDelete(exchange);
         } else {
             String response = "Método não suportado";
             byte[] bytes = response.getBytes("UTF-8");
@@ -198,16 +202,16 @@ public class Comentario implements HttpHandler {
 
     private void handlePost(HttpExchange exchange) throws IOException {
         /*
-        Exemplo de JSON
-        
-        {
-        "receita_idreceita": 1,
-        "usuario_idusuario": 1,
-        "comentario": "Muito boa receita",
-        "nota": 10
-        }
-        
-        */
+         * Exemplo de requisição
+         * 
+         * {
+         * "receita_idreceita": 1,
+         * "usuario_idusuario": 1,
+         * "comentario": "Muito boa receita",
+         * "nota": 10
+         * }
+         * 
+         */
 
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -222,7 +226,7 @@ public class Comentario implements HttpHandler {
         Usuario usuario = Usuario.getUsuario(Integer.parseInt(idUsuario));
 
         if (usuario == null) {
-            String response = "{\"error\": \"Usuário não encontrado\"}";
+            String response = "{\"error\": \"Comentário não encontrado\"}";
             byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(404, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
@@ -257,6 +261,161 @@ public class Comentario implements HttpHandler {
         exchange.sendResponseHeaders(201, bytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(bytes);
+        }
+    }
+
+    private void handlePut(HttpExchange exchange) throws IOException {
+        /*
+         * Exemplo de requisição
+         * 
+         * http://localhost:8089/comentario?id=1
+         * 
+         * {
+         * "receita_idreceita": 1,
+         * "usuario_idusuario": 1,
+         * "comentario": "Muito boa receita",
+         * "nota": 10
+         * }
+         * 
+         */
+
+        String query = exchange.getRequestURI().getQuery();
+
+        if (query == null || !query.contains("id=")) {
+            String response = "{\"error\": \"ID do comentário não informado\"}";
+            exchange.sendResponseHeaders(400, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+            return;
+        }
+
+        int id = Integer.parseInt(query.replaceAll(".*id=(\\d+).*", "$1"));
+
+        InputStream is = exchange.getRequestBody();
+        String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+        String idReceita = body.replaceAll("(?s).*\"receita_idreceita\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+        String idUsuario = body.replaceAll("(?s).*\"usuario_idusuario\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+        String comentario = body.replaceAll("(?s).*\"comentario\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+        String nota = body.replaceAll("(?s).*\"nota\"\\s*:\\s*(?:\"([^\"]+)\"|(\\d+)).*", "$1$2");
+
+        LocalDateTime dataComentario = LocalDateTime.now();
+
+        Usuario usuario = Usuario.getUsuario(Integer.parseInt(idUsuario));
+
+        if (usuario == null) {
+            String response = "{\"error\": \"Comentário não encontrado\"}";
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(404, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+            return;
+        }
+
+        Receita receita = usuario.getReceita(Integer.parseInt(idReceita));
+
+        if (receita == null) {
+            String response = "{\"error\": \"Receita não encontrada\"}";
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(404, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+            return;
+        }
+
+        try {
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
+                    "UPDATE comentario SET receita_idreceita = ?, usuario_idusuario = ?, comentario = ?, nota = ?, datacomentario = ? WHERE idcomentario = ?");
+
+            stmt.setInt(1, Integer.parseInt(idReceita));
+            stmt.setInt(2, Integer.parseInt(idUsuario));
+            stmt.setString(3, comentario);
+            stmt.setInt(4, Integer.parseInt(nota));
+            stmt.setTimestamp(5, java.sql.Timestamp.valueOf(dataComentario));
+            stmt.setInt(6, id);
+
+            int rows = stmt.executeUpdate();
+            DAO.closeConnection();
+
+            if (rows == 0) {
+                String response = "{\"error\": \"Comentário não encontrado\"}";
+                exchange.sendResponseHeaders(404, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            String response = "{\"message\": \"Comentário atualizada com sucesso\"}";
+            exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            String response = "{\"error\": \"Erro ao atualizar comentário\"}";
+            exchange.sendResponseHeaders(500, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+        }
+    }
+
+    private void handleDelete(HttpExchange exchange) throws IOException {
+        /*
+         * Exemplo de requisição
+         * 
+         * http://localhost:8089/comentario?id=1
+         * 
+         */
+
+        String query = exchange.getRequestURI().getQuery();
+
+        if (query == null || !query.contains("id=")) {
+            String response = "{\"error\": \"ID do comentário não informado\"}";
+            exchange.sendResponseHeaders(400, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+            return;
+        }
+
+        int id = Integer.parseInt(query.replaceAll(".*id=(\\d+).*", "$1"));
+
+        try {
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
+                    "DELETE FROM comentario WHERE idcomentario = ?");
+
+            stmt.setInt(1, id);
+            int rows = stmt.executeUpdate();
+            DAO.closeConnection();
+
+            if (rows == 0) {
+                String response = "{\"error\": \"Comentário não encontrado\"}";
+                exchange.sendResponseHeaders(404, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            String response = "{\"message\": \"Comentário removido com sucesso\"}";
+            exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+
+        } catch (java.sql.SQLIntegrityConstraintViolationException e) {
+            String response = "{\"error\": \"Não é possível deletar: comentário está associado a uma receita\"}";
+            exchange.sendResponseHeaders(409, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            String response = "{\"error\": \"Erro ao excluir comentário\"}";
+            exchange.sendResponseHeaders(500, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
         }
     }
 }

@@ -98,6 +98,10 @@ public class Categoria implements HttpHandler {
             handleGet(exchange);
         } else if (method.equalsIgnoreCase("POST")) {
             handlePost(exchange);
+        } else if (method.equalsIgnoreCase("PUT")) {
+            handlePut(exchange);
+        } else if (method.equalsIgnoreCase("DELETE")) {
+            handleDelete(exchange);
         } else {
             String response = "Método não suportado";
             byte[] bytes = response.getBytes("UTF-8");
@@ -155,14 +159,14 @@ public class Categoria implements HttpHandler {
 
     private void handlePost(HttpExchange exchange) throws IOException {
         /*
-        Exemplo de JSON
-
-        {
-        "categoria": "sobremesa",
-        "ativo": 1
-        }
-        
-        */
+         * Exemplo de requisição
+         * 
+         * {
+         * "categoria": "sobremesa",
+         * "ativo": 1
+         * }
+         * 
+         */
 
         InputStream is = exchange.getRequestBody();
         String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -182,4 +186,125 @@ public class Categoria implements HttpHandler {
             os.write(bytes);
         }
     }
+
+    private void handlePut(HttpExchange exchange) throws IOException {
+        /*
+         * Exemplo de requisição
+         * 
+         * URL: http://localhost:8089/categorias?id=1
+         * 
+         * {
+         * "categoria": "sobremesa",
+         * "ativo": 1
+         * }
+         * 
+         */
+
+        String query = exchange.getRequestURI().getQuery();
+
+        if (query == null || !query.contains("id=")) {
+            String response = "{\"error\": \"ID da categoria não informado\"}";
+            exchange.sendResponseHeaders(400, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+            return;
+        }
+
+        int id = Integer.parseInt(query.replaceAll(".*id=(\\d+).*", "$1"));
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+        String nome = body.replaceAll("(?s).*\"categoria\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+        String sAtivo = body.replaceAll("(?s).*\"ativo\"\\s*:\\s*(\\d+).*", "$1");
+        int ativo = Integer.parseInt(sAtivo);
+
+        try {
+            PreparedStatement stmt = DAO.createConnection().prepareStatement(
+                    "UPDATE categoria SET categoria = ?, ativo = ? WHERE idcategoria = ?");
+
+            stmt.setString(1, nome);
+            stmt.setInt(2, ativo);
+            stmt.setInt(3, id);
+
+            int rows = stmt.executeUpdate();
+            DAO.closeConnection();
+
+            if (rows == 0) {
+                String response = "{\"error\": \"Categoria não encontrada\"}";
+                exchange.sendResponseHeaders(404, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            String response = "{\"message\": \"Categoria atualizada com sucesso\"}";
+            exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            String response = "{\"error\": \"Erro ao atualizar categoria\"}";
+            exchange.sendResponseHeaders(500, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+        }
+    }
+
+    private void handleDelete(HttpExchange exchange) throws IOException {
+        /*
+         * Exemplo de requisição
+         * 
+         * URL: http://localhost:8089/categorias?id=1
+         * 
+         */
+
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null || !query.contains("id=")) {
+            String response = "{\"error\": \"ID da categoria não informado\"}";
+            exchange.sendResponseHeaders(400, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+            return;
+        }
+
+        int id = Integer.parseInt(query.replaceAll(".*id=(\\d+).*", "$1"));
+
+        try {
+            PreparedStatement stmt = DAO.createConnection()
+                    .prepareStatement("DELETE FROM categoria WHERE idcategoria = ?");
+            stmt.setInt(1, id);
+            int rows = stmt.executeUpdate();
+            DAO.closeConnection();
+
+            if (rows == 0) {
+                String response = "{\"error\": \"Categoria não encontrada\"}";
+                exchange.sendResponseHeaders(404, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
+                exchange.getResponseBody().close();
+                return;
+            }
+
+            String response = "{\"message\": \"Categoria deletada com sucesso\"}";
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+
+        } catch (java.sql.SQLIntegrityConstraintViolationException e) {
+            String response = "{\"error\": \"Não é possível deletar: categoria está associada a uma receita\"}";
+            exchange.sendResponseHeaders(409, response.getBytes().length); // 409 Conflict
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            String response = "{\"error\": \"Erro interno ao deletar a categoria\"}";
+            exchange.sendResponseHeaders(500, response.getBytes().length);
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.getResponseBody().close();
+        }
+    }
+
 }
