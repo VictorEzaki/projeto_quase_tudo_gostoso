@@ -3,10 +3,6 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-/*
-    Alunos: Victor Takeyoshi Kieper Ezaki, Bruno Ricardo Leite.
-*/
-
 public class App {
     public static void main(String[] args) throws IOException {
         // Criando o servidor HTTP
